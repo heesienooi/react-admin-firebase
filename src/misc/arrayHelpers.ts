@@ -1,3 +1,5 @@
+import get from 'lodash/get';
+
 function isEmptyObj(obj) {
   if (!obj) {
     return true;
@@ -5,11 +7,7 @@ function isEmptyObj(obj) {
   return JSON.stringify(obj) === '{}';
 }
 
-export function sortArray(
-  data: Array<{}>,
-  field: string,
-  dir: 'asc' | 'desc'
-): void {
+export function sortArray(data: Array<{}>, field: string, dir: 'asc' | 'desc'): void {
   data.sort((a: {}, b: {}) => {
     const rawA = a[field];
     const rawB = b[field];
@@ -32,22 +30,21 @@ export function sortArray(
   });
 }
 
-export function filterArray(
-  data: Array<{}>,
-  filterFields: { [field: string]: string }
-): Array<{}> {
+export function filterArray(data: Array<{}>, filterFields: { [field: string]: string }): Array<{}> {
   if (isEmptyObj(filterFields)) {
     return data;
   }
   const fieldNames = Object.keys(filterFields);
   return data.filter(item =>
     fieldNames.reduce((previousMatched, fieldName) => {
-      let fieldVal = filterFields[fieldName];
+      // let fieldVal = filterFields[fieldName];
+      let fieldVal = get(filterFields, fieldName);
       if (fieldVal == null || fieldVal == undefined) {
         fieldVal = '';
       }
+
       const fieldSearchText = fieldVal.toString().toLowerCase();
-      const dataFieldValue = item[fieldName];
+      const dataFieldValue = get(item, fieldName);
       if (dataFieldValue == null) {
         return false;
       }
