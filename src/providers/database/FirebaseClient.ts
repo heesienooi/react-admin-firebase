@@ -64,7 +64,6 @@ export class FirebaseClient implements IFirebaseClient {
   ): Promise<messageTypes.IResponseCreate> {
     const r = await this.tryGetResource(resourceName);
     log('apiCreate', { resourceName, resource: r, params });
-    const currentUserEmail = await this.getCurrentUserEmail();
     const hasOverridenDocId = params.data && params.data.id;
     if (hasOverridenDocId) {
       const overridenId = params.data.id;
@@ -74,10 +73,8 @@ export class FirebaseClient implements IFirebaseClient {
       }
       const docObj = {
         ...data,
-        createdate: this.fireWrapper.serverTimestamp(),
-        lastupdate: this.fireWrapper.serverTimestamp(),
-        createdby: currentUserEmail,
-        updatedby: currentUserEmail
+        createdAt: this.fireWrapper.serverTimestamp(),
+        updatedAt: this.fireWrapper.serverTimestamp(),
       };
       await r.collection.doc(overridenId).set(docObj, { merge: true });
       return {
@@ -91,10 +88,8 @@ export class FirebaseClient implements IFirebaseClient {
     const data = await this.parseDataAndUpload(r, newId, params.data);
     const docObj = {
       ...data,
-      createdate: this.fireWrapper.serverTimestamp(),
-      lastupdate: this.fireWrapper.serverTimestamp(),
-      createdby: currentUserEmail,
-      updatedby: currentUserEmail
+      createdAt: this.fireWrapper.serverTimestamp(),
+      updatedAt: this.fireWrapper.serverTimestamp(),
     };
     await r.collection.doc(newId).set(docObj, { merge: false });
     return {
@@ -112,14 +107,12 @@ export class FirebaseClient implements IFirebaseClient {
     delete params.data.id;
     const r = await this.tryGetResource(resourceName);
     log('apiUpdate', { resourceName, resource: r, params });
-    const currentUserEmail = await this.getCurrentUserEmail();
     const data = await this.parseDataAndUpload(r, id, params.data);
     r.collection
       .doc(id)
       .update({
         ...data,
-        lastupdate: this.fireWrapper.serverTimestamp(),
-        updatedby: currentUserEmail
+        updatedAt: this.fireWrapper.serverTimestamp(),
       })
       .catch(error => {
         logError('apiUpdate error', { error });
@@ -139,7 +132,6 @@ export class FirebaseClient implements IFirebaseClient {
     const r = await this.tryGetResource(resourceName);
     log('apiUpdateMany', { resourceName, resource: r, params });
     const ids = params.ids;
-    const currentUserEmail = await this.getCurrentUserEmail();
     const returnData = await Promise.all(
       ids.map(async id => {
         const data = await this.parseDataAndUpload(r, id, params.data);
@@ -147,8 +139,7 @@ export class FirebaseClient implements IFirebaseClient {
           .doc(id)
           .update({
             ...data,
-            lastupdate: this.fireWrapper.serverTimestamp(),
-            updatedby: currentUserEmail
+            updatedAt: this.fireWrapper.serverTimestamp(),
           })
           .catch(error => {
             logError('apiUpdateMany error', { error });
